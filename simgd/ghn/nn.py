@@ -1,4 +1,4 @@
-from src.ghn.encoder import MLPEncoder
+from .encoder import MLPEncoder
 import torch
 import torch.nn as nn
 import os
