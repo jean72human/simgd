@@ -337,7 +337,7 @@ class Graph():
 
             return node_link, fn_name
 
-        var = self.model(torch.randn(1, 3, *self.expected_image_sz))
+        var = self.model(torch.randn(1, *self.expected_image_sz))
         # take only the first output, but can in principle handle multiple outputs, e.g. from auxiliary classifiers
         traverse_graph((var[0] if isinstance(var, (tuple, list)) else var).grad_fn)  # populate nodes and edges
 
