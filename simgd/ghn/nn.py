@@ -61,7 +61,7 @@ class GHN(nn.Module):
         self.bias_dec = nn.Linear(hid,max_shape[0])
 
     def forward(self, net, graph):
-        features = torch.zeros((graph.n_nodes,self.hid))
+        features = torch.zeros((graph.n_nodes,self.hid), device=net.device)
         for ind, param in enumerate(graph.node_params[1:]):
             weight = net.state_dict()[param]
             if weight.ndimension() == 4:
