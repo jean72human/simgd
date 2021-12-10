@@ -40,6 +40,7 @@ class GHN(nn.Module):
         self.hid = hid
 
         self.device = device
+        self.to(device)
 
         if layernorm:
             self.ln = nn.LayerNorm(hid)
@@ -66,7 +67,7 @@ class GHN(nn.Module):
     def forward(self, net, graph):
         features = torch.zeros((graph.n_nodes,self.hid), device=self.device)
         for ind, param in enumerate(graph.node_params[1:]):
-            weight = net.state_dict()[param]
+            weight = net.state_dict()[param].to(self.device)
             if weight.ndimension() == 4:
                 in_weight = torch.zeros(self.max_shape)
                 in_weight[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)] = weight
