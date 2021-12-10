@@ -27,7 +27,8 @@ class GHN(nn.Module):
                  ve=False,
                  layernorm=False,
                  hid=32,
-                 debug_level=0):
+                 debug_level=0,
+                 device="cpu"):
         super(GHN, self).__init__()
 
         assert len(max_shape) == 4, max_shape
@@ -37,6 +38,8 @@ class GHN(nn.Module):
         self.debug_level = debug_level
         self.num_classes = num_classes
         self.hid = hid
+
+        self.device = device
 
         if layernorm:
             self.ln = nn.LayerNorm(hid)
