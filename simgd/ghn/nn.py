@@ -40,7 +40,6 @@ class GHN(nn.Module):
         self.hid = hid
 
         self.device = device
-        self.to(device)
 
         if layernorm:
             self.ln = nn.LayerNorm(hid)
@@ -69,19 +68,19 @@ class GHN(nn.Module):
         for ind, param in enumerate(graph.node_params[1:]):
             weight = torch.clone(net.state_dict()[param]).to(self.device)
             if weight.ndimension() == 4:
-                in_weight = torch.zeros(self.max_shape)
+                in_weight = torch.zeros(self.max_shape, device=self.device)
                 in_weight[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)] = weight
                 features[ind+1,:] = self.conv_enc(in_weight.flatten())
             elif weight.ndimension() == 2:
-                in_weight = torch.zeros(self.max_shape[:2])
+                in_weight = torch.zeros(self.max_shape[:2], device=self.device)
                 in_weight[:weight.size(0),:weight.size(1)] = weight
                 features[ind+1,:] = self.linear_enc(in_weight.flatten())
             elif weight.ndimension() == 1:
-                in_weight = torch.zeros(self.max_shape[0])
+                in_weight = torch.zeros(self.max_shape[0], device=self.device)
                 in_weight[:weight.size(0)] = weight
                 features[ind+1,:] = self.bias_enc(in_weight)
-        print("Feature on cuda",features.is_cuda)
-        x = self.gnn(features, graph.edges.to(self.device), graph.node_feat[:,1].to(self.device))
+        
+        x = self.gnn(features, graph.edges, graph.node_feat[:,1])
 
         if self.layernorm:
             x = self.ln(x)
