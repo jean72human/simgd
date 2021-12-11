@@ -67,7 +67,7 @@ class GHN(nn.Module):
     def forward(self, net, graph):
         features = torch.zeros((graph.n_nodes,self.hid), device=self.device)
         for ind, param in enumerate(graph.node_params[1:]):
-            weight = net.state_dict()[param].to(self.device)
+            weight = torch.clone(net.state_dict()[param]).to(self.device)
             if weight.ndimension() == 4:
                 in_weight = torch.zeros(self.max_shape)
                 in_weight[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)] = weight
@@ -80,7 +80,7 @@ class GHN(nn.Module):
                 in_weight = torch.zeros(self.max_shape[0])
                 in_weight[:weight.size(0)] = weight
                 features[ind+1,:] = self.bias_enc(in_weight)
-
+        print("Feature on cuda",features.is_cuda)
         x = self.gnn(features, graph.edges.to(self.device), graph.node_feat[:,1].to(self.device))
 
         if self.layernorm:
@@ -88,7 +88,7 @@ class GHN(nn.Module):
 
         out = []
         for ind, param in enumerate(graph.node_params[1:]):
-            weight = net.state_dict()[param]
+            weight = torch.clone(net.state_dict()[param]).to(self.device)
             if weight.ndimension() == 4:
                 out.append(self.conv_dec(x[ind+1,:])[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)])
             elif weight.ndimension() == 2:
