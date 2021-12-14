@@ -15,7 +15,7 @@ class MLPDecoder(nn.Module):
         self.mlp = MLP(in_features=in_features,
                        hid=(*hid, np.prod(out_shape)),
                        activation='relu',
-                       last_activation=None)
+                       last_activation="sigmoid")
 
 
     def forward(self, x, max_shape=(0,0)):
