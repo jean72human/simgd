@@ -65,6 +65,7 @@ class GHN(nn.Module):
 
     def forward(self, net, graph):
         features = torch.zeros((graph.n_nodes,self.hid), device=self.device)
+        features[0,:] = 1
         for ind, param in enumerate(graph.node_params[1:]):
             weight = torch.clone(net.state_dict()[param]).to(self.device)
             if weight.ndimension() == 4:
