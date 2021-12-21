@@ -19,6 +19,8 @@ def get_activation(activation):
             f = nn.RReLU()
         elif activation == 'sigmoid':
             f = nn.Sigmoid()
+        elif activation == 'tanh':
+            f = nn.Tanh()
         else:
             raise NotImplementedError(activation)
     else:
