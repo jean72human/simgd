@@ -1,10 +1,10 @@
-from .encoder import MLPEncoder
 import torch
 import torch.nn as nn
 import os
 #from .mlp import MLP
 from .gnn.gatedgnn import GatedGNN
-from .decoder import MLPDecoder#, ConvDecoder
+from .decoder import MLPDecoder, ConvDecoder
+from .encoder import MLPEncoder, ConvEncoder
 #from .layers import ShapeEncoder
 from ..deepnets1m.ops import NormLayers, PosEnc
 from ..deepnets1m.genotypes import PRIMITIVES_DEEPNETS1M
@@ -54,8 +54,8 @@ class GHN(nn.Module):
 
         self.max_shape = max_shape # [64,64,3,3]
 
-        self.conv_enc = MLPEncoder(self.max_shape,out_features=hid)
-        self.conv_dec = MLPDecoder(self.max_shape,in_features=hid)
+        self.conv_enc = ConvEncoder(self.max_shape,out_features=hid)
+        self.conv_dec = ConvDecoder(self.max_shape,in_features=hid)
 
         self.linear_enc = MLPEncoder(max_shape[:2],out_features=hid)
         self.linear_dec = MLPDecoder(max_shape[:2],in_features=hid)
@@ -71,11 +71,11 @@ class GHN(nn.Module):
             if weight.ndimension() == 4:
                 in_weight = torch.zeros(self.max_shape, device=self.device)
                 in_weight[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)] = weight
-                features[ind+1,:] = self.conv_enc(in_weight.flatten())
+                features[ind+1,:] = self.conv_enc(in_weight)
             elif weight.ndimension() == 2:
                 in_weight = torch.zeros(self.max_shape[:2], device=self.device)
                 in_weight[:weight.size(0),:weight.size(1)] = weight
-                features[ind+1,:] = self.linear_enc(in_weight.flatten())
+                features[ind+1,:] = self.linear_enc(in_weight)
             elif weight.ndimension() == 1:
                 in_weight = torch.zeros(self.max_shape[0], device=self.device)
                 in_weight[:weight.size(0)] = weight
