@@ -39,7 +39,7 @@ class ConvEncoder(nn.Module):
 
         conv = []
         for j, n_hid in enumerate(hid):
-            n_in = np.prod(in_shape[2:]) if j == 0 else hid[j-1]
+            n_in = np.prod(in_shape[:2]) if j == 0 else hid[j-1]
             conv.extend([nn.Conv2d(n_in, n_hid, 1),
                          get_activation('relu')])
 
