@@ -87,7 +87,7 @@ class GHN(nn.Module):
                     features[ind+1,:self.hid] = self.bias_enc(in_weight)
 
             prim_ind = PRIMITIVES_DEEPNETS1M.index(name) if name in PRIMITIVES_DEEPNETS1M else len(PRIMITIVES_DEEPNETS1M)
-            features[ind+1,self.hid:] = self.layer_embed(torch.tensor([prim_ind])).squeeze(0)
+            features[ind+1,self.hid:] = self.layer_embed(torch.tensor([prim_ind], device=self.device)).squeeze(0)
 
         #param_groups, params_map = self._map_net_params(graph, net, self.debug_level > 0)
         #shape_features = self.shape_enc(self.embed(graph.node_feat[:, 0]), params_map, predict_class_layers=True)
