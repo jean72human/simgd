@@ -563,7 +563,7 @@ class Graph():
                      sz,
                      node_ind == len(self._nodes) - 2,
                      node_ind == len(self._nodes) - 1))
-            self.node_params.append(param_name)
+            self.node_params.append((name,param_name))
 
         if n_glob_avg > 1:
             print(
