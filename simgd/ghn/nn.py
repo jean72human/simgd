@@ -98,16 +98,16 @@ class GHN(nn.Module):
         if self.layernorm:
             x = self.ln(x)
 
-        out = []
+        out = {}
         for ind, (name,param) in enumerate(graph.node_params[1:]):
             if param in net.state_dict().keys():
                 weight = torch.clone(net.state_dict()[param]).to(self.device)
                 if weight.ndimension() == 4:
-                    out.append(self.conv_dec(x[ind+1,:])[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)])
+                    out[param] = self.conv_dec(x[ind+1,:])[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)]
                 elif weight.ndimension() == 2:
-                    out.append(self.linear_dec(x[ind+1,:])[:weight.size(0),:weight.size(1)])
+                    out[param] = self.linear_dec(x[ind+1,:])[:weight.size(0),:weight.size(1)]
                 elif weight.ndimension() == 1:
-                    out.append(self.bias_dec(x[ind+1,:])[:weight.size(0)])
+                    out[param] = self.bias_dec(x[ind+1,:])[:weight.size(0)]
 
         return out
 
