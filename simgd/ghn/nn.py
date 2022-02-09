@@ -101,7 +101,7 @@ class GHN(nn.Module):
         out = {}
         for ind, (name,param) in enumerate(graph.node_params[1:]):
             if param in net.state_dict().keys():
-                weight_dim = net.state_dict()[param].shape()
+                weight_dim = net.state_dict()[param].shape
                 if len(weight_dim) == 4:
                     out[param] = self.conv_dec(x[ind+1,:])[:weight_dim[0],:weight_dim[1],:weight_dim[2],:weight_dim[3]]
                 elif len(weight_dim) == 2:
