@@ -72,19 +72,19 @@ class GHN(nn.Module):
         features[0,:] = 1
         for ind, (name,param) in enumerate(graph.node_params[1:]):
             if param in net.state_dict().keys():
-                weight = torch.clone(net.state_dict()[param]).to(self.device)
+                weight = torch.clone(net.state_dict()[param])
                 if weight.ndimension() == 4:
-                    in_weight = torch.zeros(self.max_shape, device=self.device)
+                    in_weight = torch.zeros(self.max_shape)
                     in_weight[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)] = weight
-                    features[ind+1,:self.hid] = self.conv_enc(in_weight)
+                    features[ind+1,:self.hid] = self.conv_enc(in_weight.to(self.device))
                 elif weight.ndimension() == 2:
-                    in_weight = torch.zeros(self.max_shape[:2], device=self.device)
+                    in_weight = torch.zeros(self.max_shape[:2])
                     in_weight[:weight.size(0),:weight.size(1)] = weight
-                    features[ind+1,:self.hid] = self.linear_enc(in_weight)
+                    features[ind+1,:self.hid] = self.linear_enc(in_weight.to(self.device))
                 elif weight.ndimension() == 1:
-                    in_weight = torch.zeros(self.max_shape[0], device=self.device)
+                    in_weight = torch.zeros(self.max_shape[0])
                     in_weight[:weight.size(0)] = weight
-                    features[ind+1,:self.hid] = self.bias_enc(in_weight)
+                    features[ind+1,:self.hid] = self.bias_enc(in_weight.to(self.device))
                 del weight
             prim_ind = PRIMITIVES_DEEPNETS1M.index(name) if name in PRIMITIVES_DEEPNETS1M else len(PRIMITIVES_DEEPNETS1M)
             features[ind+1,self.hid:] = self.layer_embed(torch.tensor([prim_ind], device=self.device)).squeeze(0)
@@ -101,14 +101,13 @@ class GHN(nn.Module):
         out = {}
         for ind, (name,param) in enumerate(graph.node_params[1:]):
             if param in net.state_dict().keys():
-                weight = torch.clone(net.state_dict()[param]).to(self.device)
-                if weight.ndimension() == 4:
-                    out[param] = self.conv_dec(x[ind+1,:])[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)]
-                elif weight.ndimension() == 2:
-                    out[param] = self.linear_dec(x[ind+1,:])[:weight.size(0),:weight.size(1)]
-                elif weight.ndimension() == 1:
-                    out[param] = self.bias_dec(x[ind+1,:])[:weight.size(0)]
-                del weight
+                weight_dim = net.state_dict()[param].shape()
+                if len(weight_dim) == 4:
+                    out[param] = self.conv_dec(x[ind+1,:])[:weight_dim[0],:weight_dim[1],:weight_dim[2],:weight_dim[3]]
+                elif len(weight_dim) == 2:
+                    out[param] = self.linear_dec(x[ind+1,:])[:weight_dim[0],:weight_dim[1]]
+                elif len(weight_dim) == 1:
+                    out[param] = self.bias_dec(x[ind+1,:])[:weight_dim[0]]
 
         return out
 
