@@ -85,7 +85,7 @@ class GHN(nn.Module):
                     in_weight = torch.zeros(self.max_shape[0], device=self.device)
                     in_weight[:weight.size(0)] = weight
                     features[ind+1,:self.hid] = self.bias_enc(in_weight)
-            del weight
+                del weight
             prim_ind = PRIMITIVES_DEEPNETS1M.index(name) if name in PRIMITIVES_DEEPNETS1M else len(PRIMITIVES_DEEPNETS1M)
             features[ind+1,self.hid:] = self.layer_embed(torch.tensor([prim_ind], device=self.device)).squeeze(0)
 
