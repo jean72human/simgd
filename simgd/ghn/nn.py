@@ -68,24 +68,24 @@ class GHN(nn.Module):
         self.layer_embed = nn.Embedding(len(PRIMITIVES_DEEPNETS1M)+1,hid)
 
     def forward(self, net, graph):
+        param_dict = dict(net.named_parameters())
         features = torch.zeros((graph.n_nodes,self.hid*2), device=self.device)
         features[0,:] = 1
         for ind, (name,param) in enumerate(graph.node_params[1:]):
             if param in net.state_dict().keys():
-                weight = net.state_dict()[param]
+                weight = param_dict[param][0]
                 if weight.ndimension() == 4:
-                    in_weight = torch.zeros(self.max_shape)
+                    in_weight = torch.zeros(self.max_shape,device=self.device)
                     in_weight[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)] = weight
-                    features[ind+1,:self.hid] = self.conv_enc(in_weight.to(self.device))
+                    features[ind+1,:self.hid] = self.conv_enc(in_weight)
                 elif weight.ndimension() == 2:
-                    in_weight = torch.zeros(self.max_shape[:2])
+                    in_weight = torch.zeros(self.max_shape[:2],device=self.device)
                     in_weight[:weight.size(0),:weight.size(1)] = weight
-                    features[ind+1,:self.hid] = self.linear_enc(in_weight.to(self.device))
+                    features[ind+1,:self.hid] = self.linear_enc(in_weight)
                 elif weight.ndimension() == 1:
-                    in_weight = torch.zeros(self.max_shape[0])
+                    in_weight = torch.zeros(self.max_shape[0],device=self.device)
                     in_weight[:weight.size(0)] = weight
-                    features[ind+1,:self.hid] = self.bias_enc(in_weight.to(self.device))
-                del weight
+                    features[ind+1,:self.hid] = self.bias_enc(in_weight)
             prim_ind = PRIMITIVES_DEEPNETS1M.index(name) if name in PRIMITIVES_DEEPNETS1M else len(PRIMITIVES_DEEPNETS1M)
             features[ind+1,self.hid:] = self.layer_embed(torch.tensor([prim_ind], device=self.device)).squeeze(0)
 
