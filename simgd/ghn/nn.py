@@ -72,7 +72,7 @@ class GHN(nn.Module):
         features[0,:] = 1
         for ind, (name,param) in enumerate(graph.node_params[1:]):
             if param in net.state_dict().keys():
-                weight = torch.clone(net.state_dict()[param])
+                weight = net.state_dict()[param]
                 if weight.ndimension() == 4:
                     in_weight = torch.zeros(self.max_shape)
                     in_weight[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)] = weight
