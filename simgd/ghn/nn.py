@@ -109,5 +109,45 @@ class GHN(nn.Module):
                 elif len(weight_dim) == 1:
                     out[param] = self.bias_dec(x[ind+1,:])[:weight_dim[0]]
 
+        for name in out.keys():
+            out[name] = self._normalize(out[name], False, name=='bias')
         return out
+
+    def _normalize(self, p, is_posenc, is_w):
+        r"""
+        Normalizes the predicted parameter tensor according to the Fan-In scheme described in the paper.
+        :param module: nn.Module
+        :param p: predicted tensor
+        :param is_w: True if it is a weight, False if it is a bias
+        :return: normalized predicted tensor
+        """
+        if p.dim() > 1:
+
+            sz = p.shape
+
+            if len(sz) > 2 and sz[2] >= 11 and sz[0] == 1:
+                if is_posenc: return p    # do not normalize positional encoding weights
+
+            no_relu = len(sz) > 2 and (sz[1] == 1 or sz[2] < sz[3])
+            if no_relu:
+                # layers not followed by relu
+                beta = 1.
+            else:
+                # for layers followed by rely increase the weight scale
+                beta = 2.
+
+            # fan-out:
+            # p = p * (beta / (sz[0] * p[0, 0].numel())) ** 0.5
+
+            # fan-in:
+            p = p * (beta / p[0].numel()) ** 0.5
+
+        else:
+
+            if is_w:
+                p = 2 * torch.sigmoid(0.5 * p)  # BN/LN norm weight is [0,2]
+            else:
+                p = torch.tanh(0.2 * p)         # bias is [-1,1]
+
+        return p
 
