@@ -109,8 +109,8 @@ class GHN(nn.Module):
                 elif len(weight_dim) == 1:
                     out[param] = self.bias_dec(x[ind+1,:])[:weight_dim[0]]
 
-        for name in out.keys():
-            out[name] = self._normalize(out[name], False, name=='bias')
+        #for name in out.keys():
+        #    out[name] = self._normalize(out[name], False, name=='bias')
         return out
 
     def _normalize(self, p, is_posenc, is_w):
