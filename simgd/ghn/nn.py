@@ -45,7 +45,7 @@ class GHN(nn.Module):
         self.device = device
 
         if layernorm:
-            self.ln = nn.LayerNorm(hid)
+            self.ln = nn.LayerNorm(hid*2)
 
         if hypernet == 'gatedgnn':
             self.gnn = GatedGNN(in_features=hid*2, ve=ve)
