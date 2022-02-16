@@ -4,6 +4,7 @@ import torch.nn as nn
 import os
 #from .mlp import MLP
 from .gnn.gatedgnn import GatedGNN
+from .gnn.gcn import GCNModel
 from .decoder import MLPDecoder, ConvDecoder
 from .encoder import MLPEncoder, ConvEncoder
 from .layers import ShapeEncoder
@@ -49,6 +50,8 @@ class GHN(nn.Module):
 
         if hypernet == 'gatedgnn':
             self.gnn = GatedGNN(in_features=hid*2, ve=ve)
+        elif hypernet == 'gcn':
+            self.gnn = GCNModel(sz_in=hid*2,sz_out=hid*2)
         else:
             raise NotImplementedError(hypernet)
         #elif hypernet == 'mlp':
