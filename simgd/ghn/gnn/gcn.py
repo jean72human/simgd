@@ -22,7 +22,7 @@ class GCNModel(nn.Module):
         Returns:
             new_fts: [N, 7]
         """
-        adj1 = torch.zeros((x.size(0),x.size(0)), device=x.device)
+        adj1 = torch.eye(x.size(0), device=x.device)
         for ind in edges[:,:2]: 
             adj1[ind[0],ind[1]]=1
             #adj[ind[1],ind[0]]=1
