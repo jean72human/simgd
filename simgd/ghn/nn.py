@@ -49,9 +49,9 @@ class GHN(nn.Module):
             self.ln = nn.LayerNorm(hid*2)
 
         if hypernet == 'gatedgnn':
-            self.gnn = GatedGNN(in_features=hid*2, ve=ve)
+            self.gnn = GatedGNN(in_features=hid*4, ve=ve)
         elif hypernet == 'gcn':
-            self.gnn = GCNModel(sz_in=hid*2,sz_out=hid*2)
+            self.gnn = GCNModel(sz_in=hid*4,sz_out=hid*2)
         else:
             raise NotImplementedError(hypernet)
         #elif hypernet == 'mlp':
@@ -70,7 +70,7 @@ class GHN(nn.Module):
 
         self.layer_embed = nn.Embedding(len(PRIMITIVES_DEEPNETS1M)+1,hid)
 
-    def forward(self, net, graph):
+    def forward(self, net, graph, h=None):
         param_dict = dict(net.named_parameters())
         features = torch.zeros((graph.n_nodes,self.hid*2), device=self.device)
         features[0,:] = 1
@@ -95,8 +95,9 @@ class GHN(nn.Module):
         #param_groups, params_map = self._map_net_params(graph, net, self.debug_level > 0)
         #shape_features = self.shape_enc(self.embed(graph.node_feat[:, 0]), params_map, predict_class_layers=True)
         #print(shape_features.shape)
-
-        x = self.gnn(features, graph.edges, graph.node_feat[:,1])
+        if h is None:
+            h = torch.zeros((graph.n_nodes,self.hid*2), device=self.device)
+        x = self.gnn(torch.cat([features,h], dim=1), graph.edges, graph.node_feat[:,1])
 
         if self.layernorm:
             x = self.ln(x)
@@ -114,7 +115,7 @@ class GHN(nn.Module):
 
         #for name in out.keys():
         #    out[name] = self._normalize(out[name], False, name=='bias')
-        return out
+        return out,x
 
     def _normalize(self, p, is_posenc, is_w):
         r"""
