@@ -363,20 +363,6 @@ class Graph():
         assert len(ind) == 1, ind
         A[-1, ind] = 1
 
-        # Add output node
-        print(A)
-        nodes.insert(0,{'id': 'output', 'param_name': 'output', 'attrs': None, 'module': None})
-        ind = np.where(A.sum(1) == 0)[0]
-        A = np.insert(A, -1, np.zeros((1,A.shape[0])), 0)
-        A = np.insert(A, -1, np.zeros((1,A.shape[0])), 1)
-        assert len(ind) == 1, ind
-        print(ind)
-        print(A)
-        for node in nodes: print(node)
-        A[1,ind+1] = 1
-        
-
-
         # Sort nodes in a topological order consistent with forward propagation
         A[np.diag_indices_from(A)] = 0
         ind = np.array(list(nx.topological_sort(nx.DiGraph(A))))
