@@ -68,7 +68,7 @@ class GHN(nn.Module):
         self.bias_enc = nn.Linear(max_shape[0],hid)
         self.bias_dec = nn.Linear(hid*2,max_shape[0])
 
-        self.predictor = nn.Linear(hid*4,1)
+        #self.predictor = nn.Linear(hid*4,1)
 
         self.layer_embed = nn.Embedding(len(PRIMITIVES_DEEPNETS1M)+1,hid)
 
@@ -113,12 +113,12 @@ class GHN(nn.Module):
                 elif len(weight_dim) == 1:
                     out[param] = self.bias_dec(x[ind+1,:])[:weight_dim[0]]
 
-        x_bar = x.sum(0, keepdim = True).repeat(x.size(0),1) 
-        pred_loss = self.predictor(torch.max(torch.cat([x,x_bar],dim=1),dim=0).values)
+        #x_bar = x.sum(0, keepdim = True).repeat(x.size(0),1) 
+        #pred_loss = self.predictor(torch.max(torch.cat([x,x_bar],dim=1),dim=0).values)
 
         #for name in out.keys():
         #    out[name] = self._normalize(out[name], False, name=='bias')
-        return out, pred_loss
+        return out #, pred_loss
 
     def _normalize(self, p, is_posenc, is_w):
         r"""
