@@ -40,6 +40,13 @@ class GraphBatch():
             for graph in graphs:
                 self.append(graph)
 
+        self.edges = torch.cat([self.edges,torch.zeros((self.edges.size(0),1))],dim=1).long()
+        self.node_feat = torch.cat([self.node_feat,torch.zeros((self.node_feat.size(0),1))],dim=1)
+
+    def to(self, device):
+        self.edges.to(device)
+        self.node_feat.to(device)
+
 
     def append(self, graph):
         graph_offset = len(self.n_nodes)                    # current index of the graph in a batch
