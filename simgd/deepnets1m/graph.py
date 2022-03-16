@@ -40,13 +40,6 @@ class GraphBatch():
             for graph in graphs:
                 self.append(graph)
 
-        self.edges = torch.cat([self.edges,torch.zeros((self.edges.size(0),1))],dim=1).long()
-        self.node_feat = torch.cat([self.node_feat,torch.zeros((self.node_feat.size(0),1))],dim=1)
-
-    def to(self, device):
-        self.edges.to(device)
-        self.node_feat.to(device)
-
 
     def append(self, graph):
         graph_offset = len(self.n_nodes)                    # current index of the graph in a batch
@@ -225,6 +218,13 @@ class Graph():
 
         self.net_args = net_args
         self.net_idx = net_idx
+
+        self.edges = torch.cat([self.edges,torch.zeros((self.edges.size(0),1))],dim=1).long()
+        self.node_feat = torch.cat([self.node_feat,torch.zeros((self.node_feat.size(0),1))],dim=1)
+
+    def to(self, device):
+        self.edges.to(device)
+        self.node_feat.to(device)
 
 
     def num_valid_nodes(self, model=None):
@@ -686,7 +686,7 @@ class Graph():
                                    torch.tensor(primitives_order)[:, None]))
             param_shapes = [(3, 3, 1, 1)] + [None] * n_primitives
         else:
-            node_feat = self.node_feat
+            node_feat = self.node_feat[:,0].int()
             param_shapes = self._param_shapes
 
         for i, (x, sz) in enumerate(zip(node_feat.view(-1), param_shapes)):
