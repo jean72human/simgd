@@ -104,26 +104,28 @@ class GHN(nn.Module):
 
         out = {}
         for ind, (name,param) in enumerate(graph.node_params[1:]):
-            #if param in net.state_dict().keys():
-            #computing incoming gradient
-            if name!='input' and ind>0:
-                incoming_grad = 0
-                neighs = graph.edges[:,0][(graph.edges[:,1] == ind+1) * (graph.edges[:,2] == 1)]
-                print(ind+1,param)
-                print(neighs)
-                for neigh in neighs:
-                    incoming_grad += out[graph.node_params[neigh][1]]
+            if param in net.state_dict().keys():
+                #computing incoming gradient
+                #if name!='input' and ind>0:
+                #    incoming_grad = 0
+                #    neighs = graph.edges[:,0][(graph.edges[:,1] == ind+1) * (graph.edges[:,2] == 1)]
+                #    print(ind+1,param)
+                #    print(neighs)
+                #    for neigh in neighs:
+                #        incoming_grad += out[graph.node_params[neigh][1]]
 
-            #computing inplace gradient
-            weight_dim = net.state_dict()[param].shape
-            if len(weight_dim) == 4:
-                out[param] = self.conv_dec(x[ind+1,:])[:weight_dim[0],:weight_dim[1],:weight_dim[2],:weight_dim[3]]
-            elif len(weight_dim) == 2:
-                out[param] = self.linear_dec(x[ind+1,:])[:weight_dim[0],:weight_dim[1]]
-            elif len(weight_dim) == 1:
-                out[param] = self.bias_dec(x[ind+1,:])[:weight_dim[0]]
+                #computing inplace gradient
+                weight_dim = net.state_dict()[param].shape
+                if len(weight_dim) == 4:
+                    out[param] = self.conv_dec(x[ind+1,:])[:weight_dim[0],:weight_dim[1],:weight_dim[2],:weight_dim[3]]
+                elif len(weight_dim) == 2:
+                    out[param] = self.linear_dec(x[ind+1,:])[:weight_dim[0],:weight_dim[1]]
+                elif len(weight_dim) == 1:
+                    out[param] = self.bias_dec(x[ind+1,:])[:weight_dim[0]]
             
-            if incoming_grad: out[param] = out[param] @ incoming_grad
+            #if incoming_grad: out[param] = out[param] @ incoming_grad
+
+        
 
         ## backward pass
 
