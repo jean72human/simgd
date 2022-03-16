@@ -223,8 +223,9 @@ class Graph():
         self.node_feat = torch.cat([self.node_feat,torch.zeros((self.node_feat.size(0),1))],dim=1)
 
     def to(self, device):
-        self.edges.to(device)
-        self.node_feat.to(device)
+        self.edges = self.edges.to(device)
+        self.node_feat = self.node_feat.to(device)
+        return self
 
 
     def num_valid_nodes(self, model=None):
