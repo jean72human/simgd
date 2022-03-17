@@ -32,7 +32,8 @@ class GHN(nn.Module):
                  layernorm=False,
                  hid=32,
                  debug_level=0,
-                 device="cpu"):
+                 device="cpu",
+                 backmul=False):
         super(GHN, self).__init__()
 
         assert len(max_shape) == 4, max_shape
@@ -49,7 +50,7 @@ class GHN(nn.Module):
             self.ln = nn.LayerNorm(hid*2)
 
         if hypernet == 'gatedgnn':
-            self.gnn = GatedGNN(in_features=hid*2, ve=ve)
+            self.gnn = GatedGNN(in_features=hid*2, ve=ve, backmul=backmul)
         elif hypernet == 'gcn':
             self.gnn = GCNModel(sz_in=hid*2,sz_out=hid*2)
         else:
@@ -94,9 +95,6 @@ class GHN(nn.Module):
             prim_ind = PRIMITIVES_DEEPNETS1M.index(name) if name in PRIMITIVES_DEEPNETS1M else len(PRIMITIVES_DEEPNETS1M)
             features[ind+1,self.hid:] = self.layer_embed(torch.tensor([prim_ind], device=self.device)).squeeze(0)
 
-        #param_groups, params_map = self._map_net_params(graph, net, self.debug_level > 0)
-        #shape_features = self.shape_enc(self.embed(graph.node_feat[:, 0]), params_map, predict_class_layers=True)
-        #print(shape_features.shape)
         x = self.gnn(features, graph.edges, graph.node_feat[:,1])
 
         if self.layernorm:
@@ -105,16 +103,6 @@ class GHN(nn.Module):
         out = {}
         for ind, (name,param) in enumerate(graph.node_params[1:]):
             if param in net.state_dict().keys():
-                #computing incoming gradient
-                #if name!='input' and ind>0:
-                #    incoming_grad = 0
-                #    neighs = graph.edges[:,0][(graph.edges[:,1] == ind+1) * (graph.edges[:,2] == 1)]
-                #    print(ind+1,param)
-                #    print(neighs)
-                #    for neigh in neighs:
-                #        incoming_grad += out[graph.node_params[neigh][1]]
-
-                #computing inplace gradient
                 weight_dim = net.state_dict()[param].shape
                 if len(weight_dim) == 4:
                     out[param] = self.conv_dec(x[ind+1,:])[:weight_dim[0],:weight_dim[1],:weight_dim[2],:weight_dim[3]]
@@ -123,19 +111,6 @@ class GHN(nn.Module):
                 elif len(weight_dim) == 1:
                     out[param] = self.bias_dec(x[ind+1,:])[:weight_dim[0]]
             
-            #if incoming_grad: out[param] = out[param] @ incoming_grad
-
-        
-
-        ## backward pass
-
-        #for node in torch.arange(graph.edges[:, 1].max() + 1, device=x.device)
-
-        #x_bar = x.sum(0, keepdim = True).repeat(x.size(0),1) 
-        #pred_loss = self.predictor(torch.max(torch.cat([x,x_bar],dim=1),dim=0).values)
-
-        #for name in out.keys():
-        #    out[name] = self._normalize(out[name], False, name=='bias')
         return out #, pred_loss
 
     def _normalize(self, p, is_posenc, is_w):

@@ -12,7 +12,8 @@ class GatedGNN(nn.Module):
     def __init__(self,
                  in_features=32,
                  ve=False,
-                 T=1):
+                 T=1,
+                 backmul=False):
         """
         Initializes Gated Graph Neural Network.
         :param in_features: how many features in each node.
@@ -29,6 +30,8 @@ class GatedGNN(nn.Module):
             self.mlp_ve = MLP(in_features, hid=(self.hid // 2, self.hid))
 
         self.gru = nn.GRUCell(self.hid, self.hid)  # shared across all nodes/cells in a graph
+        
+        self.backmul = backmul
 
 
     def forward(self, x, edges, node_graph_ind):
@@ -82,20 +85,25 @@ class GatedGNN(nn.Module):
             for order in traversal_orders:  # forward, backward
                 start = edges[:, 1 - order] + edge_offset                           # node indices from which the message will be passed further
                 for node in (all_nodes if order else torch.flipud(all_nodes)):
+                    if order==0 and self.backmul:
+                        e_1hop = torch.nonzero(masks_1hop[order][node, :]).view(-1)
+                        m = torch.sum(hx[start[e_1hop]],0)
+                        hx[ind] = m*hx[ind]
+                    else:
+                        # Compute the message by aggregating features from neighbors
+                        e_1hop = torch.nonzero(masks_1hop[order][node, :]).view(-1)
+                        m = self.mlp(hx[start[e_1hop]])                                 # transform node features of all 1-hop neighbors
+                        m = zero.clone().scatter_add_(0, edge_graph_ind[e_1hop], m)     # sum the transformed features into a (B,C) tensor
+                        if self.ve:
+                            e = torch.nonzero(masks_all[order][node, :]).view(-1)       # virtual edges connected to node
+                            m_ve = self.mlp_ve(hx[start[e]]) * ve[e]                    # transform node features of all ve-hop neighbors
+                            m = m.scatter_add_(0, edge_graph_ind[e], m_ve)              # sum m and m_ve according to Eq. 4 in the paper
 
-                    # Compute the message by aggregating features from neighbors
-                    e_1hop = torch.nonzero(masks_1hop[order][node, :]).view(-1)
-                    m = self.mlp(hx[start[e_1hop]])                                 # transform node features of all 1-hop neighbors
-                    m = zero.clone().scatter_add_(0, edge_graph_ind[e_1hop], m)     # sum the transformed features into a (B,C) tensor
-                    if self.ve:
-                        e = torch.nonzero(masks_all[order][node, :]).view(-1)       # virtual edges connected to node
-                        m_ve = self.mlp_ve(hx[start[e]]) * ve[e]                    # transform node features of all ve-hop neighbors
-                        m = m.scatter_add_(0, edge_graph_ind[e], m_ve)              # sum m and m_ve according to Eq. 4 in the paper
-
-                    # Udpate node hidden states in parallel for a batch of graphs
-                    ind = torch.nonzero(mask2d[:, node]).view(-1)
-                    if B > 1:
-                        m = m[node_graph_ind[ind]]
-                    hx[ind] = self.gru(m, hx[ind])
+                        # Udpate node hidden states in parallel for a batch of graphs
+                        ind = torch.nonzero(mask2d[:, node]).view(-1)
+                        if B > 1:
+                            m = m[node_graph_ind[ind]]
+                        hx[ind] = self.gru(m, hx[ind])
+                        
 
         return hx
