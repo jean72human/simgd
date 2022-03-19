@@ -32,6 +32,7 @@ class GHN(nn.Module):
                  layernorm=False,
                  hid=32,
                  debug_level=0,
+                 passes=1,
                  device="cpu",
                  backmul=False):
         super(GHN, self).__init__()
@@ -50,7 +51,7 @@ class GHN(nn.Module):
             self.ln = nn.LayerNorm(hid*2)
 
         if hypernet == 'gatedgnn':
-            self.gnn = GatedGNN(in_features=hid*2, ve=ve, backmul=backmul)
+            self.gnn = GatedGNN(in_features=hid*2, ve=ve, backmul=backmul, T=passes)
         elif hypernet == 'gcn':
             self.gnn = GCNModel(sz_in=hid*2,sz_out=hid*2)
         else:

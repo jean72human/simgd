@@ -89,6 +89,7 @@ class GatedGNN(nn.Module):
                         e_1hop = torch.nonzero(masks_1hop[order][node, :]).view(-1)
                         m = torch.sum(hx[start[e_1hop]],0)
                         hx[ind] = m*hx[ind]
+                        print('hey')
                     else:
                         # Compute the message by aggregating features from neighbors
                         e_1hop = torch.nonzero(masks_1hop[order][node, :]).view(-1)
