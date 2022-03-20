@@ -74,13 +74,12 @@ class GHN(nn.Module):
 
         self.layer_embed = nn.Embedding(len(PRIMITIVES_DEEPNETS1M)+1,hid)
 
-    def forward(self, net, graph):
-        param_dict = dict(net.named_parameters())
+    def forward(self, data, graph):
         features = torch.zeros((graph.n_nodes,self.hid*2), device=self.device)
         features[0,:] = 1
         for ind, (name,param) in enumerate(graph.node_params[1:]):
-            if param in net.state_dict().keys():
-                weight = param_dict[param][0]
+            if param in data.keys():
+                weight = data[param]
                 if weight.ndimension() == 4:
                     in_weight = torch.zeros(self.max_shape,device=self.device)
                     in_weight[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)] = weight
@@ -103,8 +102,8 @@ class GHN(nn.Module):
 
         out = {}
         for ind, (name,param) in enumerate(graph.node_params[1:]):
-            if param in net.state_dict().keys():
-                weight_dim = net.state_dict()[param].shape
+            if param in data.keys():
+                weight_dim = data[param].shape
                 if len(weight_dim) == 4:
                     out[param] = self.conv_dec(x[ind+1,:])[:weight_dim[0],:weight_dim[1],:weight_dim[2],:weight_dim[3]]
                 elif len(weight_dim) == 2:
@@ -112,7 +111,7 @@ class GHN(nn.Module):
                 elif len(weight_dim) == 1:
                     out[param] = self.bias_dec(x[ind+1,:])[:weight_dim[0]]
             
-        return out #, pred_loss
+        return out 
 
     def empty_dict(self, net, graph):
         out = {}
