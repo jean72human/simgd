@@ -114,6 +114,13 @@ class GHN(nn.Module):
             
         return out #, pred_loss
 
+    def empty_dict(self, net, graph):
+        out = {}
+        for ind, (name,param) in enumerate(graph.node_params[1:]):
+            if param in net.state_dict().keys():
+                out[param] = None
+        return out
+
     def _normalize(self, p, is_posenc, is_w):
         r"""
         Normalizes the predicted parameter tensor according to the Fan-In scheme described in the paper.
