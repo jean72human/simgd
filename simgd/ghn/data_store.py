@@ -77,6 +77,7 @@ class DataStore:
     def detach(self):
         for key in self.data:
             self.data[key].detach()
+        return self
 
     def norm(self):
         to_return = {}
@@ -87,10 +88,18 @@ class DataStore:
     def normalize(self):
         for key in self.data:
             self.data[key] /= self.data[key].norm()
+        return self
 
     def to(self,device):
         for key in self.data:
             self.data[key].to(device)
+        return self
+
+    def clone(self):
+        to_return = {}
+        for key in self.data:
+            to_return[key] = self.data[key].clone()
+        return DataStore(to_return)
 
     @staticmethod
     def empty_dict(net, graph):
