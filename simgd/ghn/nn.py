@@ -4,6 +4,7 @@ import torch.nn as nn
 import os
 #from .mlp import MLP
 from .gnn.gatedgnn import GatedGNN
+from .data_store import DataStore
 from .gnn.gcn import GCNModel
 from .decoder import MLPDecoder, ConvDecoder
 from .encoder import MLPEncoder, ConvEncoder
@@ -111,14 +112,8 @@ class GHN(nn.Module):
                 elif len(weight_dim) == 1:
                     out[param] = self.bias_dec(x[ind+1,:])[:weight_dim[0]]
             
-        return out 
+        return DataStore(out) 
 
-    def empty_dict(self, net, graph):
-        out = {}
-        for ind, (name,param) in enumerate(graph.node_params[1:]):
-            if param in net.state_dict().keys():
-                out[param] = None
-        return out
 
     def _normalize(self, p, is_posenc, is_w):
         r"""
