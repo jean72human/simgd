@@ -16,12 +16,13 @@ class DataStore:
         for key in self.data:
             op = values[key] if (isinstance(values,dict) or isinstance(values,DataStore)) else values
             to_return[key] = self.data[key] + op
-        return to_return
+        return DataStore(to_return) 
 
     def __iadd__(self,values):
         for key in self.data:
             op = values[key] if (isinstance(values,dict) or isinstance(values,DataStore)) else values
             self.data[key] = self.data[key] + op
+        return self
 
 
     def __rmul__(self,values):
@@ -29,12 +30,13 @@ class DataStore:
         for key in self.data:
             op = values[key] if (isinstance(values,dict) or isinstance(values,DataStore)) else values
             to_return[key] = self.data[key] * op
-        return to_return
+        return DataStore(to_return) 
 
     def __imul__(self,values):
         for key in self.data:
             op = values[key] if (isinstance(values,dict) or isinstance(values,DataStore)) else values
             self.data[key] = self.data[key] * op
+        return self
 
     
     def __rsub__(self,values):
@@ -42,12 +44,13 @@ class DataStore:
         for key in self.data:
             op = values[key] if (isinstance(values,dict) or isinstance(values,DataStore)) else values
             to_return[key] = self.data[key] - op
-        return to_return
+        return DataStore(to_return) 
 
     def __isub__(self,values):
         for key in self.data:
             op = values[key] if (isinstance(values,dict) or isinstance(values,DataStore)) else values
             self.data[key] = self.data[key] - op
+        return self
 
 
     def __rtruediv__(self,values):
@@ -55,12 +58,13 @@ class DataStore:
         for key in self.data:
             op = values[key] if (isinstance(values,dict) or isinstance(values,DataStore)) else values
             to_return[key] = self.data[key] / op
-        return to_return
+        return DataStore(to_return) 
 
     def __itruediv__(self,values):
         for key in self.data:
             op = values[key] if (isinstance(values,dict) or isinstance(values,DataStore)) else values
             self.data[key] = self.data[key] / op
+        return self
 
     def values(self):
         return self.data.values()
@@ -78,7 +82,7 @@ class DataStore:
         to_return = {}
         for key in self.data:
             to_return[key] = self.data[key].norm()
-        return to_return 
+        return DataStore(to_return) 
 
     def normalize(self):
         for key in self.data:
