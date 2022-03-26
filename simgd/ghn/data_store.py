@@ -11,7 +11,7 @@ class DataStore:
     def __setitem__(self,key,value):
         self.data[key] = value
 
-    def __radd__(self,values):
+    def __add__(self,values):
         to_return = {}
         for key in self.data:
             op = values[key] if (isinstance(values,dict) or isinstance(values,DataStore)) else values
@@ -25,7 +25,7 @@ class DataStore:
         return self
 
 
-    def __rmul__(self,values):
+    def __mul__(self,values):
         to_return = {}
         for key in self.data:
             op = values[key] if (isinstance(values,dict) or isinstance(values,DataStore)) else values
@@ -39,7 +39,7 @@ class DataStore:
         return self
 
     
-    def __rsub__(self,values):
+    def __sub__(self,values):
         to_return = {}
         for key in self.data:
             op = values[key] if (isinstance(values,dict) or isinstance(values,DataStore)) else values
@@ -53,7 +53,7 @@ class DataStore:
         return self
 
 
-    def __rtruediv__(self,values):
+    def __truediv__(self,values):
         to_return = {}
         for key in self.data:
             op = values[key] if (isinstance(values,dict) or isinstance(values,DataStore)) else values
