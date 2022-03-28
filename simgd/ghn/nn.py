@@ -49,12 +49,12 @@ class GHN(nn.Module):
         self.device = device
 
         if layernorm:
-            self.ln = nn.LayerNorm(hid*2)
+            self.ln = nn.LayerNorm(hid*3)
 
         if hypernet == 'gatedgnn':
-            self.gnn = GatedGNN(in_features=hid*2, ve=ve, backmul=backmul, T=passes)
+            self.gnn = GatedGNN(in_features=hid*3, ve=ve, backmul=backmul, T=passes)
         elif hypernet == 'gcn':
-            self.gnn = GCNModel(sz_in=hid*2,sz_out=hid*2)
+            self.gnn = GCNModel(sz_in=hid*3,sz_out=hid*3)
         else:
             raise NotImplementedError(hypernet)
         #elif hypernet == 'mlp':
@@ -63,38 +63,48 @@ class GHN(nn.Module):
         self.max_shape = max_shape # [64,64,3,3]
 
         self.conv_enc = ConvEncoder(self.max_shape,out_features=hid)
-        self.conv_dec = ConvDecoder(self.max_shape,in_features=hid*2)
+        self.conv_dec = ConvDecoder(self.max_shape,in_features=hid*3)
 
         self.linear_enc = MLPEncoder(max_shape[:2],out_features=hid)
-        self.linear_dec = MLPDecoder(max_shape[:2],in_features=hid*2)
+        self.linear_dec = MLPDecoder(max_shape[:2],in_features=hid*3)
 
         self.bias_enc = nn.Linear(max_shape[0],hid)
-        self.bias_dec = nn.Linear(hid*2,max_shape[0])
+        self.bias_dec = nn.Linear(hid*3,max_shape[0])
 
         #self.predictor = nn.Linear(hid*4,1)
 
         self.layer_embed = nn.Embedding(len(PRIMITIVES_DEEPNETS1M)+1,hid)
 
-    def forward(self, data, graph):
-        features = torch.zeros((graph.n_nodes,self.hid*2), device=self.device)
+    def forward(self, data, grads, graph):
+        features = torch.zeros((graph.n_nodes,self.hid*3), device=self.device)
         features[0,:] = 1
         for ind, (name,param) in enumerate(graph.node_params[1:]):
             if param in data.keys():
                 weight = data[param]
+                grad = grads[param]
                 if weight.ndimension() == 4:
+                    in_grad = torch.zeros(self.max_shape,device=self.device)
+                    in_grad[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)] = grad
                     in_weight = torch.zeros(self.max_shape,device=self.device)
                     in_weight[:weight.size(0),:weight.size(1),:weight.size(2),:weight.size(3)] = weight
                     features[ind+1,:self.hid] = self.conv_enc(in_weight)
+                    features[ind+1,self.hid:self.hid*2] = self.conv_enc(in_weight)
                 elif weight.ndimension() == 2:
+                    in_grad = torch.zeros(self.max_shape[:2],device=self.device)
+                    in_grad[:weight.size(0),:weight.size(1)] = grad
                     in_weight = torch.zeros(self.max_shape[:2],device=self.device)
                     in_weight[:weight.size(0),:weight.size(1)] = weight
                     features[ind+1,:self.hid] = self.linear_enc(in_weight)
+                    features[ind+1,self.hid:self.hid*2] = self.linear_enc(in_weight)
                 elif weight.ndimension() == 1:
+                    in_grad = torch.zeros(self.max_shape[0],device=self.device)
+                    in_grad[:weight.size(0)] = grad
                     in_weight = torch.zeros(self.max_shape[0],device=self.device)
                     in_weight[:weight.size(0)] = weight
                     features[ind+1,:self.hid] = self.bias_enc(in_weight)
+                    features[ind+1,self.hid:self.hid*2] = self.bias_enc(in_weight)
             prim_ind = PRIMITIVES_DEEPNETS1M.index(name) if name in PRIMITIVES_DEEPNETS1M else len(PRIMITIVES_DEEPNETS1M)
-            features[ind+1,self.hid:] = self.layer_embed(torch.tensor([prim_ind], device=self.device)).squeeze(0)
+            features[ind+1,self.hid*2:] = self.layer_embed(torch.tensor([prim_ind], device=self.device)).squeeze(0)
 
         x = self.gnn(features, graph.edges, graph.node_feat[:,1])
 
