@@ -76,7 +76,7 @@ class DataStore:
 
     def detach(self):
         for key in self.data:
-            self.data[key].detach()
+            self.data[key] = self.data[key].detach()
         return self
 
     def norm(self):
