@@ -75,9 +75,10 @@ class DataStore:
 
 
     def detach(self):
+        to_return = {}
         for key in self.data:
-            self.data[key] = self.data[key].detach()
-        return self
+            to_return[key] = self.data[key].detach()
+        return DataStore(to_return) 
 
     def norm(self):
         to_return = {}
