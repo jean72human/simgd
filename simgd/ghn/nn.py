@@ -122,6 +122,7 @@ class GHN(nn.Module):
                     out[param] = self.linear_dec(x[ind+1,:])[:weight_dim[0],:weight_dim[1]]
                 elif len(weight_dim) == 1:
                     out[param] = self.bias_dec(x[ind+1,:])[:weight_dim[0]]
+                    
                 if self.weight_norm:
                     out[param] = self._normalize(out[param], len(weight_dim)>1)
             
