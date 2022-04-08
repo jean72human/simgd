@@ -35,6 +35,7 @@ class GHN(nn.Module):
                  debug_level=0,
                  passes=1,
                  device="cpu",
+                 weightnorm=False,
                  backmul=False):
         super(GHN, self).__init__()
 
@@ -45,7 +46,7 @@ class GHN(nn.Module):
         self.debug_level = debug_level
         self.num_classes = num_classes
         self.hid = hid
-
+        self.weightnorm= weightnorm
         self.device = device
 
         if layernorm:
@@ -121,11 +122,13 @@ class GHN(nn.Module):
                     out[param] = self.linear_dec(x[ind+1,:])[:weight_dim[0],:weight_dim[1]]
                 elif len(weight_dim) == 1:
                     out[param] = self.bias_dec(x[ind+1,:])[:weight_dim[0]]
+                if self.weight_norm:
+                    out[param] = self._normalize(out[param], len(weight_dim)>1)
             
         return DataStore(out) 
 
 
-    def _normalize(self, p, is_posenc, is_w):
+    def _normalize(self, p, is_w):
         r"""
         Normalizes the predicted parameter tensor according to the Fan-In scheme described in the paper.
         :param module: nn.Module
@@ -136,9 +139,6 @@ class GHN(nn.Module):
         if p.dim() > 1:
 
             sz = p.shape
-
-            if len(sz) > 2 and sz[2] >= 11 and sz[0] == 1:
-                if is_posenc: return p    # do not normalize positional encoding weights
 
             no_relu = len(sz) > 2 and (sz[1] == 1 or sz[2] < sz[3])
             if no_relu:
