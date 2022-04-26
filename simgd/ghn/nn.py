@@ -126,7 +126,7 @@ class GHN(nn.Module):
                 if self.weight_norm:
                     out[param] = self._normalize(out[param], len(weight_dim)>1)
 
-                out[param] = torch.nn.functional.tanh(out[param])
+                out[param] = torch.tanh(out[param])
             
         return DataStore(out) 
 
