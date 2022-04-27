@@ -80,11 +80,17 @@ class DataStore:
             to_return[key] = self.data[key].detach()
         return DataStore(to_return) 
 
-    def norm(self):
+    def norm(self,p=2):
         to_return = {}
         for key in self.data:
-            to_return[key] = self.data[key].norm()
+            to_return[key] = self.data[key].norm(p)
         return DataStore(to_return) 
+
+    def sum(self):
+        to_return = 0
+        for key in self.data:
+            to_return += self.data[key].sum()
+        return to_return
 
     def normalize(self):
         for key in self.data:
