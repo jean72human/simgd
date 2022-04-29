@@ -225,6 +225,7 @@ class Graph():
     def to(self, device):
         self.edges = self.edges.to(device)
         self.node_feat = self.node_feat.to(device)
+        self._Adj = self._Adj.to(device)
         return self
 
 
