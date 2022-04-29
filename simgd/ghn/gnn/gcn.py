@@ -26,7 +26,7 @@ class GCNModel(nn.Module):
         #for ind in edges[:,:2]: 
         #    adj1[ind[0],ind[1]]=1
             #adj[ind[1],ind[0]]=1
-
+        adj1 = adj1+torch.eye(adj1.size(0), device=adj1.device)
         deg1 = adj1.sum(axis=1, keepdim=True) # Degree of nodes, shape [N, 1]
         adj2 = adj1.T
         deg2 = adj2.sum(axis=1, keepdim=True)
