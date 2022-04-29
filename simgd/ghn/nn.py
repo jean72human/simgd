@@ -58,6 +58,8 @@ class GHN(nn.Module):
             self.gnn = GCNModel(sz_in=hid*3,sz_out=hid*3)
         else:
             raise NotImplementedError(hypernet)
+
+        self.hypernet = hypernet
         #elif hypernet == 'mlp':
         #    self.gnn = MLP(in_features=hid, hid=(hid, hid))
 
@@ -107,7 +109,10 @@ class GHN(nn.Module):
             prim_ind = PRIMITIVES_DEEPNETS1M.index(name) if name in PRIMITIVES_DEEPNETS1M else len(PRIMITIVES_DEEPNETS1M)
             features[ind+1,self.hid*2:] = self.layer_embed(torch.tensor([prim_ind], device=self.device)).squeeze(0)
 
-        x = self.gnn(features, graph.edges, graph.node_feat[:,1])
+        if self.hypernet == 'gcn':
+            x = self.gnn(features, (graph._Adj==1).long())
+        else:
+            x = self.gnn(features, graph.edges, graph.node_feat[:,1])
 
         if self.layernorm:
             x = self.ln(x)

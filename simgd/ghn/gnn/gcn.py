@@ -13,7 +13,7 @@ class GCNModel(nn.Module):
         self.ReLU = nn.ReLU()
         ### END SOLUTION
 
-    def forward(self,  x, edges, node_graph_ind):
+    def forward(self,  x, adj1):
         """
         Args:
             fts: [N, 1433]
@@ -22,9 +22,9 @@ class GCNModel(nn.Module):
         Returns:
             new_fts: [N, 7]
         """
-        adj1 = torch.eye(x.size(0), device=x.device)
-        for ind in edges[:,:2]: 
-            adj1[ind[0],ind[1]]=1
+        #adj1 = torch.eye(x.size(0), device=x.device)
+        #for ind in edges[:,:2]: 
+        #    adj1[ind[0],ind[1]]=1
             #adj[ind[1],ind[0]]=1
 
         deg1 = adj1.sum(axis=1, keepdim=True) # Degree of nodes, shape [N, 1]
