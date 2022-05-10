@@ -72,7 +72,7 @@ class GHN(nn.Module):
         self.linear_dec = MLPDecoder(max_shape[:2],in_features=hid*2)
 
         self.bias_enc = nn.Linear(max_shape[0],hid)
-        self.bias_dec = nn.Linear(hid*3,max_shape[0])
+        self.bias_dec = nn.Linear(hid*2,max_shape[0])
 
         #self.predictor = nn.Linear(hid*4,1)
 
