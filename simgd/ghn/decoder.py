@@ -12,7 +12,10 @@ class MLPDecoder(nn.Module):
 
         assert len(hid) > 0, hid
         self.out_shape = out_shape
-        self.mlp = nn.Linear(in_features,np.prod(out_shape))
+        self.mlp = MLP(in_features=in_features,
+                       hid=(*hid, np.prod(out_shape)),
+                       activation='relu',
+                       last_activation=None)
 
 
     def forward(self, x, max_shape=(0,0)):
@@ -31,12 +34,13 @@ class ConvDecoder(nn.Module):
         assert len(hid) > 0, hid
         self.out_shape = out_shape
         self.fc = nn.Sequential(nn.Linear(in_features,
-                                          hid[0] * np.prod(out_shape[2:])))
+                                          hid[0] * np.prod(out_shape[2:])),
+                                nn.ReLU())
 
         conv = []
         for j, n_hid in enumerate(hid):
             n_out = np.prod(out_shape[:2]) if j == len(hid) - 1 else hid[j + 1]
-            conv.extend([nn.Conv2d(n_hid, n_out, 1)])
+            conv.extend([nn.Conv2d(n_hid, n_out, 1), get_activation(None if j == len(hid) - 1 else 'relu')])
 
         self.conv = nn.Sequential(*conv)
 
